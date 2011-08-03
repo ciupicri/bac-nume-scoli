@@ -44,6 +44,7 @@ Scoala = collections.namedtuple('Scoala',
             'nota_medie_2010', 'rank_2010',
             'nota_medie_2011', 'rank_2011'))
 
+
 re_multiple_spaces = re.compile(r'''\s+''')
 re_grup_scolar = re.compile(r'''GRUP(UL)? (SCOLAR)?''')
 re_colegiu = re.compile(r'''COLEGIU(L)? (NATIONAL)? (DE)?''')
@@ -74,7 +75,7 @@ with open('/home/ciupicri/altii/irina/evolutie_licee.csv', 'rb') as f:
 
 new_data = {}
 for judet, scoli in data.items():
-    L = []
+    groups = []
     scoli_canonice = scoli.keys()
     while scoli_canonice:
         scoala_canonica = scoli_canonice.pop()
@@ -83,5 +84,5 @@ for judet, scoli in data.items():
         group = scoli[scoala_canonica]
         for i in matches:
             group.extend(scoli[i])
-        L.append(group)
-    new_data[judet] = L
+        groups.append(group)
+    new_data[judet] = groups
