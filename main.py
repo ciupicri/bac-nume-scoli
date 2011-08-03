@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim: set fileencoding=utf-8 :
 import collections
 import csv, codecs, cStringIO
 import difflib
@@ -53,7 +54,14 @@ def get_canonical_school_name(s):
         re_liceu.sub('',
             re_colegiu.sub('',
                 re_grup_scolar.sub('',
-                    re_multiple_spaces.sub(' ', s)))).strip()
+                    re_multiple_spaces.sub(' ',
+                        s.upper()\
+                                .replace(u'Â', 'A')\
+                                .replace(u'Ă', 'A')\
+                                .replace(u'Î', 'I')\
+                                .replace(u'Ș', 'S')\
+                                .replace(u'Ț', 'T')\
+                        )))).strip()
 
 data = {}
 with open('/home/ciupicri/altii/irina/evolutie_licee.csv', 'rb') as f:
