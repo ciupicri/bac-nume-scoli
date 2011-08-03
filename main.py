@@ -3,6 +3,7 @@
 import collections
 import csv, codecs, cStringIO
 import difflib
+import logging
 import re
 
 class UTF8Recoder:
@@ -46,7 +47,7 @@ Scoala = collections.namedtuple('Scoala',
 
 
 re_multiple_spaces = re.compile(r'''\s+''')
-re_grup_scolar = re.compile(r'''GRUP(UL)? (SCOLAR)?''')
+re_grup_scolar = re.compile(r'''GRUP(UL)? (SCOLAR)? (INDUSTRIAL)?''')
 re_colegiu = re.compile(r'''COLEGIU(L)? (NATIONAL)? (DE)?''')
 re_liceu = re.compile(r'''LICEU(L)? (TEORETIC)?''')
 
@@ -64,25 +65,69 @@ def get_canonical_school_name(s):
                                 .replace(u'Ț', 'T')\
                         )))).strip()
 
-data = {}
-with open('/home/ciupicri/altii/irina/evolutie_licee.csv', 'rb') as f:
-    csv_reader = UnicodeReader(f, delimiter=';')
-    for i in csv_reader:
-        i = Scoala(*i)
-        scoala_canonica = get_canonical_school_name(i.scoala)
-        data.setdefault(i.judet, {}).setdefault(scoala_canonica, [])\
-                .append(i)
+class MergeConflict(Exception):
+    pass
 
-new_data = {}
-for judet, scoli in data.items():
-    groups = []
-    scoli_canonice = scoli.keys()
-    while scoli_canonice:
-        scoala_canonica = scoli_canonice.pop()
-        matches = difflib.get_close_matches(scoala_canonica, scoli_canonice,
-                                            n=6, cutoff=0.9)
-        group = scoli[scoala_canonica]
-        for i in matches:
-            group.extend(scoli[i])
-        groups.append(group)
-    new_data[judet] = groups
+def merge_group(group):
+    L = []
+    for values in zip(*[i[3:] for i in group]):
+        values = list(values)
+        value = None
+        while values:
+            x = values.pop()
+            if x != 'NA':
+                value = x
+                break
+        while values:
+            x = values.pop()
+            if x != 'NA':
+                raise MergeConflict()
+        if value is None:
+            logging.warn("No value found in group %s" % (repr(group), ))
+        L.append(value)
+    nume_scoala = [i.scoala for i in group if i.nota_medie_2011!='NA']
+    judet = group[0].judet
+    return Scoala(nume_scoala, judet, None, *L)
+
+def get_data(filename):
+    data = {}
+    with open(filename, 'rb') as f:
+        csv_reader = UnicodeReader(f, delimiter=';')
+        for i in csv_reader:
+            i = Scoala(*i)
+            scoala_canonica = get_canonical_school_name(i.scoala)
+            data.setdefault(i.judet, {}).setdefault(scoala_canonica, [])\
+                    .append(i)
+    return data
+
+def group_data(data):
+    grouped_data = {}
+    for judet, scoli in data.items():
+        groups = []
+        scoli_canonice = scoli.keys()
+        while scoli_canonice:
+            scoala_canonica = scoli_canonice.pop()
+            matches = difflib.get_close_matches(scoala_canonica, scoli_canonice,
+                                                n=6, cutoff=0.9)
+            group = scoli[scoala_canonica]
+            for i in matches:
+                group.extend(scoli[i])
+            groups.append(group)
+        grouped_data[judet] = groups
+    return grouped_data
+
+def merge_data(data):
+    merged_data = {}
+    for judet, groups in data.items():
+        for group in groups:
+            try:
+                scoala = merge_group(group)
+            except:
+                logging.exception("Merge conflict for group %s" % (repr(group), ))
+            merged_data.setdefault(judet, []).append(scoala)
+    return merged_data
+
+logging.basicConfig()
+data = get_data('/home/ciupicri/altii/irina/evolutie_licee.csv')
+grouped_data = group_data(data)
+merged_data = merge_data(grouped_data)
