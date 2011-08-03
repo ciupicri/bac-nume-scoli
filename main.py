@@ -47,9 +47,9 @@ Scoala = collections.namedtuple('Scoala',
 
 
 re_multiple_spaces = re.compile(r'''\s+''')
-re_grup_scolar = re.compile(r'''GRUP(UL)? (SCOLAR)? (INDUSTRIAL)?''')
-re_colegiu = re.compile(r'''COLEGIU(L)? (NATIONAL)? (DE)?''')
-re_liceu = re.compile(r'''LICEU(L)? (TEORETIC)?''')
+re_grup_scolar = re.compile(r'''GRUP(UL)?( SCOLAR)?( INDUSTRIAL| TEHNOLOGIC)?''')
+re_colegiu = re.compile(r'''COLEGIU(L)?( NATIONAL)?( DE| PENTRU| TEHNIC)?''')
+re_liceu = re.compile(r'''LICEU(L)?( TEORETIC)?''')
 
 def get_canonical_school_name(s):
     return \
@@ -85,7 +85,7 @@ def merge_group(group):
         if value is None:
             logging.warn("No value found in group %s" % (repr(group), ))
         L.append(value)
-    nume_scoala = [i.scoala for i in group if i.nota_medie_2011!='NA']
+    nume_scoala = group[0].scoala #[i.scoala for i in group if i.nota_medie_2011!='NA']
     judet = group[0].judet
     return Scoala(nume_scoala, judet, None, *L)
 
@@ -127,7 +127,7 @@ def merge_data(data):
             merged_data.setdefault(judet, []).append(scoala)
     return merged_data
 
-logging.basicConfig()
+logging.basicConfig(level=logging.ERROR)
 data = get_data('/home/ciupicri/altii/irina/evolutie_licee.csv')
 grouped_data = group_data(data)
 merged_data = merge_data(grouped_data)
