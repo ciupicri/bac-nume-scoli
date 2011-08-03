@@ -4,7 +4,7 @@ import difflib
 import re
 
 re_multiple_spaces = re.compile(r'''\s+''')
-re_grup_scolar = re.compile(r'''GRUP(UL)? SCOLAR ''')
+re_grup_scolar = re.compile(r'''GRUP(UL)? (SCOLAR)?''')
 re_colegiu = re.compile(r'''COLEGIU(L)? (NATIONAL)? (DE)?''')
 re_liceu = re.compile(r'''LICEU(L)? (TEORETIC)?''')
 
