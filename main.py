@@ -15,14 +15,10 @@ def get_canonical_school_name(s):
                 re_grup_scolar.sub('', 
                     re_multiple_spaces.sub(' ', s)))).strip()
 
+data = {}
 with open('/home/ciupicri/altii/irina/evolutie_licee.csv', 'rt') as f:
     csv_reader = csv.DictReader(f, delimiter=';')
-    licee = [i for i in csv_reader]
-
-data = {}
-for i in licee:
-    data.setdefault(i['judet'], []).append(i)
-    del i['judet']
-    i['scoala_canonica'] = get_canonical_school_name(i['scoala'])
-
-del licee
+    for i in csv_reader:
+        data.setdefault(i['judet'], []).append(i)
+        del i['judet']
+        i['scoala_canonica'] = get_canonical_school_name(i['scoala'])
