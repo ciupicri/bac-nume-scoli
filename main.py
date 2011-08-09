@@ -159,7 +159,7 @@ def merge_data(data):
             merged_data.setdefault(judet, []).append(scoala)
     return merged_data
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.DEBUG)
 data = get_data('/home/ciupicri/altii/irina/evolutie_licee.csv')
 grouped_data = group_data(data)
 merged_data = merge_data(grouped_data)
